@@ -4,6 +4,9 @@
 
 #include "sylalloc.h"
 
+// track allocations for re-use
+static memheader_t* free_list = NULL;
+
 
 // request memory from os using mmap
 static void* mmap_alloc(size_t size) {
@@ -34,9 +37,27 @@ void* syl_malloc(size_t size) {
         return NULL;
     }
 
-    size_t total_size = sizeof(memheader_t) + aligned_size;
+    memheader_t* block;
 
-    memheader_t* block = mmap_alloc(total_size);
+    // try to find a free block
+    memheader_t* current = free_list;
+    while(current) {
+        if(current->size >= aligned_size) {
+            block = current;
+            block->is_free = false;
+            current->next = NULL;
+        }
+        current = current->next;
+    }
+
+    if(block) {
+        return (void*)(block + 1);
+    }
+    
+
+    size_t total_size = sizeof(memheader_t) + aligned_size;
+    
+    block = mmap_alloc(total_size);
     if(!block) {
         return NULL;
     }

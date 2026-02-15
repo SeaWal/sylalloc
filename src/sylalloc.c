@@ -68,3 +68,14 @@ void* syl_malloc(size_t size) {
 
     return (void*)(block + 1);
 }
+
+void syl_free(void* ptr) {
+    if(!ptr) {
+        return;
+    }
+
+    memheader_t* block = (memheader_t*)(ptr - 1);
+    block->is_free = true;
+    block->next = free_list;
+    free_list = block;
+}

@@ -11,5 +11,6 @@ typedef struct memheader_t {
 } memheader_t;
 
 void* syl_malloc(size_t size);
+void syl_free(void* ptr);
 
 #endif

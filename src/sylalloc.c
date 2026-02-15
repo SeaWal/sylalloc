@@ -42,6 +42,32 @@ static memheader_t* find_free_block(size_t size) {
 }
 
 
+static void remove_block_from_free_list(memheader_t* block) {
+    if(!block || !free_list) {
+        return;
+    }
+
+    memheader_t* current = free_list;
+    memheader_t* prev = NULL;
+
+    while(current) {
+        if(current == block) {
+            if(prev) {
+                prev->next = current->next;
+            } else {
+                free_list = current->next;
+            }
+            current->next = NULL;
+            current->is_free = false;
+            return;
+        }
+
+        prev = current;
+        current = current->next;
+    }
+}
+
+
 void* syl_malloc(size_t size) {
     if(size == 0) { 
         return NULL;
@@ -59,8 +85,7 @@ void* syl_malloc(size_t size) {
     block = find_free_block(aligned_size);
 
     if(block) {
-        block->is_free = false;
-        block->next = NULL;
+        remove_block_from_free_list(block);
         return (void*)(block + 1);
     }
     

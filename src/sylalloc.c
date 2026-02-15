@@ -19,10 +19,26 @@ static void* mmap_alloc(size_t size) {
     return p;
 }
 
+
 // TODO: guard against overflow?
 static size_t align_up(size_t size) {
     size_t alignment = alignof(max_align_t);
     return (size + alignment - 1) & ~(alignment - 1);
+}
+
+
+// try to find a free block using first-fit algo
+static memheader_t* find_free_block(size_t size) {
+    memheader_t* current = free_list;
+
+    while(current) {
+        if(current->size >= size) {
+            return current;
+        }
+        current = current->next;
+    }
+
+    return NULL;
 }
 
 
@@ -39,18 +55,12 @@ void* syl_malloc(size_t size) {
 
     memheader_t* block;
 
-    // try to find a free block
-    memheader_t* current = free_list;
-    while(current) {
-        if(current->size >= aligned_size) {
-            block = current;
-            block->is_free = false;
-            current->next = NULL;
-        }
-        current = current->next;
-    }
+    // re-use existing if possible
+    block = find_free_block(aligned_size);
 
     if(block) {
+        block->is_free = false;
+        block->next = NULL;
         return (void*)(block + 1);
     }
     
@@ -69,12 +79,13 @@ void* syl_malloc(size_t size) {
     return (void*)(block + 1);
 }
 
+
 void syl_free(void* ptr) {
     if(!ptr) {
         return;
     }
 
-    memheader_t* block = (memheader_t*)(ptr - 1);
+    memheader_t* block = (memheader_t*)ptr - 1;
     block->is_free = true;
     block->next = free_list;
     free_list = block;

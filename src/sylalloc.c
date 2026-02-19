@@ -75,7 +75,7 @@ void* syl_malloc(size_t size) {
 
     size_t aligned_size = align_up(size);
     // ensure total_size doesn't overflow
-    if(aligned_size > SIZE_MAX - sizeof(memheader_t)) {
+    if(aligned_size > SIZE_MAX - MEMHEADER_SIZE) {
         return NULL;
     }
 
@@ -88,9 +88,8 @@ void* syl_malloc(size_t size) {
         remove_block_from_free_list(block);
         return (void*)(block + 1);
     }
-    
 
-    size_t total_size = sizeof(memheader_t) + aligned_size;
+    size_t total_size = MEMHEADER_SIZE + aligned_size;
     
     block = mmap_alloc(total_size);
     if(!block) {

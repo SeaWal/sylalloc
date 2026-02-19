@@ -10,6 +10,8 @@ typedef struct memheader_t {
     struct memheader_t* next;
 } memheader_t;
 
+#define MEMHEADER_SIZE sizeof(memheader_t)
+
 void* syl_malloc(size_t size);
 void syl_free(void* ptr);
 

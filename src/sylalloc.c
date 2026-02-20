@@ -69,6 +69,16 @@ static void remove_block_from_free_list(memheader_t* block) {
     }
 }
 
+static void add_block_to_free_list(memheader_t* block) {
+    if(!block) {
+        return;
+    }
+
+    block->is_free = true;
+    block->next = free_list;
+    free_list = block;
+}
+
 static void split_block(memheader_t* block, size_t required_size) {
     size_t extra_size = block->size - required_size;
 
@@ -80,9 +90,8 @@ static void split_block(memheader_t* block, size_t required_size) {
     // create new block just after the current one
     memheader_t* res_block = (memheader_t*)((char*)(block+1) + required_size);
     res_block->size = extra_size - MEMHEADER_SIZE;
-    res_block->is_free = true;
-    res_block->next = free_list;
-    free_list = res_block;
+
+    add_block_to_free_list(res_block);
 
     block->size = required_size;
 }
@@ -131,7 +140,5 @@ void syl_free(void* ptr) {
     }
 
     memheader_t* block = (memheader_t*)ptr - 1;
-    block->is_free = true;
-    block->next = free_list;
-    free_list = block;
+    add_block_to_free_list(block);
 }

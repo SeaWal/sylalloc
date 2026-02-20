@@ -4,6 +4,8 @@
 
 #include "sylalloc.h"
 
+#define MIN_SPLIT_SIZE 8
+
 // track allocations for re-use
 static memheader_t* free_list = NULL;
 
@@ -67,6 +69,24 @@ static void remove_block_from_free_list(memheader_t* block) {
     }
 }
 
+static void split_block(memheader_t* block, size_t required_size) {
+    size_t extra_size = block->size - required_size;
+
+    // no point splitting if resultant block is too small
+    if(extra_size <= MEMHEADER_SIZE + MIN_SPLIT_SIZE) {
+        return;
+    }
+
+    // create new block just after the current one
+    memheader_t* res_block = (memheader_t*)((char*)(block+1) + required_size);
+    res_block->size = extra_size - MEMHEADER_SIZE;
+    res_block->is_free = true;
+    res_block->next = free_list;
+    free_list = res_block;
+
+    block->size = required_size;
+}
+
 
 void* syl_malloc(size_t size) {
     if(size == 0) { 
@@ -86,6 +106,7 @@ void* syl_malloc(size_t size) {
 
     if(block) {
         remove_block_from_free_list(block);
+        split_block(block, aligned_size);
         return (void*)(block + 1);
     }
 

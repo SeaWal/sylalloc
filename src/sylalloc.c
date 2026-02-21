@@ -10,6 +10,14 @@
 static memheader_t* free_list = NULL;
 
 
+static inline void* header_to_user_start(memheader_t* block) {
+    return (void*)(block + MEMHEADER_SIZE);
+}
+
+static inline memheader_t* user_start_to_header(void* ptr) {
+    return (memheader_t*)ptr - MEMHEADER_SIZE;
+}
+
 // request memory from os using mmap
 static void* mmap_alloc(size_t size) {
     void* p = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -116,7 +124,7 @@ void* syl_malloc(size_t size) {
     if(block) {
         remove_block_from_free_list(block);
         split_block(block, aligned_size);
-        return (void*)(block + 1);
+        return header_to_user_start(block);
     }
 
     size_t total_size = MEMHEADER_SIZE + aligned_size;
@@ -130,7 +138,7 @@ void* syl_malloc(size_t size) {
     block->size = aligned_size;
     block->next = NULL;
 
-    return (void*)(block + 1);
+    return header_to_user_start(block);
 }
 
 
@@ -139,6 +147,6 @@ void syl_free(void* ptr) {
         return;
     }
 
-    memheader_t* block = (memheader_t*)ptr - 1;
+    memheader_t* block = user_start_to_header(ptr);
     add_block_to_free_list(block);
 }

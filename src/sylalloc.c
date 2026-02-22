@@ -156,6 +156,47 @@ void* syl_malloc(size_t size) {
 }
 
 
+// merge 2 blocks if they are adjacent to each other in free_list memory
+// requires contiguous free_list
+static void merge_if_adjacent(memheader_t* left, memheader_t* right) {
+    if(!left || !right) return;
+
+    char* left_end = (char*)left + MEMHEADER_SIZE + left->size;
+    if(left_end == (char*)right) {
+        left->size += MEMHEADER_SIZE + right->size;
+        left->next = right->next;
+
+        right->next = NULL;
+        right->is_free = false;
+    }
+}
+
+// coalesce block with neighbors in free_list
+// assumes free_list is sorted by memory address
+static void coalesce_block(memheader_t* block) {
+    if (!block) return;
+
+    // try merge prev and curr block first
+    memheader_t* prev = NULL;
+    memheader_t* current = free_list;
+
+    while (current && current != block) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev) {
+        merge_if_adjacent(prev, block);
+        // for safety, set block pointer to prev
+        block = prev;
+    }
+
+    while (block->next) {
+        // continue merging with the next if physically contiguous
+        merge_if_adjacent(block, block->next);
+    }
+}
+
 void syl_free(void* ptr) {
     if(!ptr) {
         return;
@@ -163,4 +204,5 @@ void syl_free(void* ptr) {
 
     memheader_t* block = user_start_to_header(ptr);
     add_block_to_free_list(block);
+    coalesce_block(block);
 }

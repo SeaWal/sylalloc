@@ -83,8 +83,22 @@ static void add_block_to_free_list(memheader_t* block) {
     }
 
     block->is_free = true;
-    block->next = free_list;
-    free_list = block;
+
+    // insert block in memory-sorted order
+
+    if(!free_list || block < free_list) {
+        block->next = free_list;
+        free_list = block;
+        return;
+    }
+
+    memheader_t* current = free_list;
+    while(current->next && current->next < block) {
+        current = current->next;
+    }
+
+    block->next = current->next;
+    current->next = block;
 }
 
 static void split_block(memheader_t* block, size_t required_size) {

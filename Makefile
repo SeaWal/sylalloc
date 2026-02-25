@@ -4,13 +4,13 @@ INC = -Iinclude
 
 SRC = src/sylalloc.c
 
-TEST_BASIC = tests/test_basic.c
+TEST = tests/test.c
 
-all: test_basic
+all: test
 
-test_basic:
-	$(CC) $(CFLAGS) $(SAN) $(INC) $(SRC) $(TEST_BASIC) -o test_basic
+test:
+	$(CC) $(CFLAGS) $(SAN) $(INC) $(SRC) $(TEST) -o test
 
 clean:
-	rm -f test_basic
+	rm -f test
 

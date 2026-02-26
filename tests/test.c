@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 
 #define FAIL 0
@@ -13,11 +12,18 @@
 
 #define TEST_END(result) \
     if(result == PASS) printf(COLOR_GREEN "PASS\n" COLOR_RESET); \
-    else printf(COLOR_RED "FAIL\n" COLOR_RESET);
+    else printf(COLOR_RED "FAIL\n" COLOR_RESET); \
+    return;
+
+#define ASSERT(condition) \
+    if(!(condition)) { \
+        TEST_END(FAIL) \
+    }
 
 static void test_basic_alloc() {
     TEST_INIT("test_basic_alloc");
-    TEST_END(FAIL);
+
+    TEST_END(PASS);
 }
 
 

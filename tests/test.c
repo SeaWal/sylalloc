@@ -12,9 +12,11 @@
     printf("%s :: ", name);
 
 #define TEST_END(result) \
-    if(result == PASS) printf(COLOR_GREEN "PASS\n" COLOR_RESET); \
-    else printf(COLOR_RED "FAIL\n" COLOR_RESET); \
-    return;
+    do { \
+        if(result == PASS) printf(COLOR_GREEN "PASS\n" COLOR_RESET); \
+        else printf(COLOR_RED "FAIL\n" COLOR_RESET); \
+        return; \
+    } while(0);
 
 #define ASSERT(condition) \
     if(!(condition)) { \
@@ -69,6 +71,10 @@ static void test_reuse_freed_mem() {
 
 static void test_double_free_no_crash() {
     TEST_INIT("test_double_free_no_crash");
+
+    void* p = syl_malloc(32);
+    syl_free(p);
+    syl_free(p);
 
     TEST_END(PASS);
 }

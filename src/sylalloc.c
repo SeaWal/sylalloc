@@ -11,11 +11,11 @@ static memheader_t* free_list = NULL;
 
 
 static inline void* header_to_user_start(memheader_t* block) {
-    return (void*)(block + MEMHEADER_SIZE);
+    return (void*)(block + 1);
 }
 
 static inline memheader_t* user_start_to_header(void* ptr) {
-    return (memheader_t*)ptr - MEMHEADER_SIZE;
+    return (memheader_t*)ptr - 1;
 }
 
 // request memory from os using mmap
@@ -203,6 +203,11 @@ void syl_free(void* ptr) {
     }
 
     memheader_t* block = user_start_to_header(ptr);
+
+    if(block->is_free) {
+        return;
+    }
+    
     add_block_to_free_list(block);
     coalesce_block(block);
 }

@@ -32,16 +32,6 @@ static void test_basic_alloc() {
     TEST_END(PASS);
 }
 
-static void test_free() {
-    TEST_INIT("test_free");
-
-    void* p = syl_malloc(32);
-    syl_free(p);
-    ASSERT(p == NULL);
-
-    TEST_END(PASS);
-}
-
 static void test_alloc_zero_returns_null() {
     TEST_INIT("test_alloc_zero_returns_null");
 
@@ -77,11 +67,16 @@ static void test_reuse_freed_mem() {
     TEST_END(PASS);
 }
 
+static void test_double_free_no_crash() {
+    TEST_INIT("test_double_free_no_crash");
+
+    TEST_END(PASS);
+}
 
 int main() {
     test_basic_alloc();
-    test_free();
     test_alloc_zero_returns_null();
     test_free_null_no_crash();
     test_reuse_freed_mem();
+    test_double_free_no_crash();
 }

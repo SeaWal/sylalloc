@@ -11,9 +11,16 @@
 #define TEST_INIT(name) \
     printf("%s :: ", name);
 
+static unsigned int num_tests = 0;
+static unsigned int num_passed = 0;
+
 #define TEST_END(result) \
     do { \
-        if(result == PASS) printf(COLOR_GREEN "PASS\n" COLOR_RESET); \
+        num_tests++; \
+        if(result == PASS) { \
+            num_passed++; \
+            printf(COLOR_GREEN "PASS\n" COLOR_RESET); \
+        } \
         else printf(COLOR_RED "FAIL\n" COLOR_RESET); \
         return; \
     } while(0);
@@ -22,6 +29,7 @@
     if(!(condition)) { \
         TEST_END(FAIL) \
     }
+
 
 static void test_basic_alloc() {
     TEST_INIT("test_basic_alloc");
@@ -80,9 +88,14 @@ static void test_double_free_no_crash() {
 }
 
 int main() {
+    printf("============ SYLALLOC TESTS START ============\n\n");
+
     test_basic_alloc();
     test_alloc_zero_returns_null();
     test_free_null_no_crash();
     test_reuse_freed_mem();
     test_double_free_no_crash();
+
+    printf("\nResults: %d/%d tests passed.\n", num_passed, num_tests);
+    printf("\n============ SYLALLOC TESTS END ============\n");
 }

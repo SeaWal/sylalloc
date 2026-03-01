@@ -1,3 +1,4 @@
+#include <stdalign.h>
 #include <stdio.h>
 #include "sylalloc.h"
 
@@ -8,15 +9,15 @@
 #define COLOR_GREEN   "\x1b[32m"
 #define COLOR_RESET   "\x1b[0m"
 
-#define TEST_INIT(name) \
-    printf("%s :: ", name);
-
 static unsigned int num_tests = 0;
 static unsigned int num_passed = 0;
 
+#define TEST_INIT(name) \
+    num_tests++; \
+    printf("%s :: ", name);
+
 #define TEST_END(result) \
     do { \
-        num_tests++; \
         if(result == PASS) { \
             num_passed++; \
             printf(COLOR_GREEN "PASS\n" COLOR_RESET); \
@@ -87,6 +88,20 @@ static void test_double_free_no_crash() {
     TEST_END(PASS);
 }
 
+static void test_alignment() {
+    TEST_INIT("test_alignment");
+
+    size_t max_size = 256;
+    for(size_t size = 1; size < max_size; size++) {
+        void* p = syl_malloc(size);
+        ASSERT(p != NULL);
+        ASSERT( ((uintptr_t)p % alignof(max_align_t)) == 0);
+        syl_free(p);
+    }
+
+    TEST_END(PASS);
+}
+
 int main() {
     printf("============ SYLALLOC TESTS START ============\n\n");
 
@@ -95,6 +110,7 @@ int main() {
     test_free_null_no_crash();
     test_reuse_freed_mem();
     test_double_free_no_crash();
+    test_alignment();
 
     printf("\nResults: %d/%d tests passed.\n", num_passed, num_tests);
     printf("\n============ SYLALLOC TESTS END ============\n");

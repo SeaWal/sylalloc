@@ -102,6 +102,61 @@ static void test_alignment() {
     TEST_END(PASS);
 }
 
+static void test_allocated_mem_is_writeable() {
+    TEST_INIT("test_allocated_mem_is_writeable");
+
+    char* p = syl_malloc(32);
+    ASSERT(p != NULL);
+
+    for(int i = 0; i < 32; i++) {
+        p[i] = (char)i;
+    }
+
+    for(int i = 0; i < 32; i++) {
+        ASSERT(p[i] == (char)i);
+    }
+
+    syl_free(p);
+
+    TEST_END(PASS);
+}
+
+static void test_alloc_mem_no_overlap() {
+    TEST_INIT("test_alloc_mem_no_overlap");
+
+    char* a = syl_malloc(32);
+    char* b = syl_malloc(32);
+
+    for(int i = 0; i < 32; i++) {
+        a[i] = 'a';
+        b[i] = 'b';
+    }
+
+    for(int i = 0; i < 32; i++) {
+        ASSERT(a[i] == 'a');
+        ASSERT(b[i] == 'b');
+    }
+
+    syl_free(a);
+    syl_free(b);
+
+    TEST_END(PASS);
+}
+
+static void test_split_alloc() {
+    TEST_INIT("test_split_alloc");
+
+    void* p = syl_malloc(128);
+    syl_free(p);
+
+    void* q = syl_malloc(32);
+    ASSERT(q == p);
+
+    syl_free(q);
+
+    TEST_END(PASS);
+}
+
 int main() {
     printf("============ SYLALLOC TESTS START ============\n\n");
 
@@ -111,6 +166,9 @@ int main() {
     test_reuse_freed_mem();
     test_double_free_no_crash();
     test_alignment();
+    test_allocated_mem_is_writeable();
+    test_alloc_mem_no_overlap();
+    test_split_alloc();
 
     printf("\nResults: %d/%d tests passed.\n", num_passed, num_tests);
     printf("\n============ SYLALLOC TESTS END ============\n");

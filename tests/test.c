@@ -157,6 +157,63 @@ static void test_split_alloc() {
     TEST_END(PASS);
 }
 
+static void test_coalesce() {
+    TEST_INIT("test_coalesce");
+
+    void* a = syl_malloc(64);
+    void* b = syl_malloc(64);
+
+    syl_free(a);
+    syl_free(b);
+
+    void* c = syl_malloc(128);
+    ASSERT(c == a);
+
+    syl_free(c);
+    TEST_END(PASS);
+}
+
+static void test_stress() {
+    TEST_INIT("test_stress");
+
+    const int N = 1000;
+    void* ptrs[N];
+
+    for (int i = 0; i < N; i++) {
+        ptrs[i] = syl_malloc((i % 128) + 1);
+        ASSERT(ptrs[i] != NULL);
+    }
+
+    for (int i = 0; i < N; i++) {
+        syl_free(ptrs[i]);
+    }
+
+    TEST_END(PASS);
+}
+
+static void test_large_alloc() {
+    TEST_INIT("test_large_alloc");
+
+    void* p = syl_malloc(1024 * 1024);
+    ASSERT(p != NULL);
+
+    syl_free(p);
+    TEST_END(PASS);
+}
+
+static void test_exact_fit() {
+    TEST_INIT("test_exact_fit");
+
+    void* p = syl_malloc(64);
+    syl_free(p);
+
+    void* q = syl_malloc(64);
+    ASSERT(q == p);
+
+    syl_free(q);
+    TEST_END(PASS);
+}
+
 int main() {
     printf("============ SYLALLOC TESTS START ============\n\n");
 

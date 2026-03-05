@@ -226,6 +226,10 @@ int main() {
     test_allocated_mem_is_writeable();
     test_alloc_mem_no_overlap();
     test_split_alloc();
+    test_coalesce();
+    test_stress();
+    test_large_alloc();
+    test_exact_fit();
 
     printf("\nResults: %d/%d tests passed.\n", num_passed, num_tests);
     printf("\n============ SYLALLOC TESTS END ============\n");

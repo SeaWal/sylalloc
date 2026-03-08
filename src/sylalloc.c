@@ -1,6 +1,7 @@
 #include <stdalign.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 
 #include "sylalloc.h"
@@ -145,6 +146,8 @@ static void add_block_to_free_list(memheader_t* block) {
 
     block->next = current->next;
     current->next = block;
+
+    dbg_validate_free_list();
 }
 
 static void split_block(memheader_t* block, size_t required_size) {
@@ -162,6 +165,8 @@ static void split_block(memheader_t* block, size_t required_size) {
     add_block_to_free_list(res_block);
 
     block->size = required_size;
+
+    dbg_validate_free_list();
 }
 
 
@@ -257,4 +262,6 @@ void syl_free(void* ptr) {
 
     add_block_to_free_list(block);
     coalesce_block(block);
+
+    dbg_validate_free_list();
 }

@@ -1,13 +1,59 @@
 #include <stdalign.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/mman.h>
 
 #include "sylalloc.h"
 
 #define MIN_SPLIT_SIZE 8
 
+
 // track allocations for re-use
 static memheader_t* free_list = NULL;
+
+#ifdef SYL_DEBUG
+void dbg_validate_free_list(void) {
+    memheader_t* fast = free_list;
+    memheader_t* slow = free_list;
+
+    while(fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if(slow == fast) {
+            fprintf(stderr, "SYLALLOC ERROR: cycle detected in free list\n");
+            abort();
+        }
+    }
+
+    memheader_t* curr = free_list;
+    while(curr) {
+        if(!curr->is_free) {
+            fprintf(stderr, "SYLALLOC ERROR: block in free list is not marked free\n");
+            abort();
+        }
+
+        if(curr->size == 0) {
+            fprintf(stderr, "SYLALLOC ERROR: zero sized block in free list\n");
+            abort();
+        }
+
+        if(curr->next && curr > curr->next) {
+            fprintf(stderr, "SYLALLOC ERROR: free list not in memory-sorted order\n");
+            abort();
+        }
+
+        if(curr->next) {
+            char* end = (char*)curr + MEMHEADER_SIZE + curr->size;
+            if(end == (char*)curr->next) {
+                fprintf(stderr, "SYLALLOC ERROR: adjacent blocks are not coaleseced\n");
+                abort();
+            }
+        }
+
+        curr = curr->next;
+    }
+}
+#endif
 
 
 static inline void* header_to_user_start(memheader_t* block) {
@@ -187,8 +233,7 @@ static void coalesce_block(memheader_t* block) {
         current = current->next;
     }
 
-    if (prev) {
-        merge_if_adjacent(prev, block);
+    if (prev && merge_if_adjacent(prev, block)) {
         // for safety, set block pointer to prev
         block = prev;
     }

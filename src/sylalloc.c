@@ -56,6 +56,27 @@ void dbg_validate_free_list(void) {
 }
 #endif
 
+#ifdef SYL_DEBUG
+void dbg_dump_free_list(void) {
+    printf("\n============ START DUMP ============\n");
+    int idx = 0;
+    memheader_t* curr = free_list;
+    while(curr) {
+        const char* free = curr->is_free ? "yes" : "no";
+        void* block_start = (void*)curr;
+        void* user_start = (void*)(curr + 1);
+        void* block_end = (void*)((char*)curr + curr->size);
+
+        printf("[%d] free=%s  block=%p  user=%p  size=%zu  end=%p  next=%p\n", 
+            idx, free, block_start, user_start, curr->size, block_end, (void*)curr->next);
+
+        idx++;
+        curr = curr->next;
+    }
+
+    printf("\n============ END DUMP ============\n");
+}
+#endif
 
 static inline void* header_to_user_start(memheader_t* block) {
     return (void*)(block + 1);

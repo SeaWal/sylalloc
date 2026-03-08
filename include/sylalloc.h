@@ -17,8 +17,10 @@ void syl_free(void* ptr);
 
 #ifdef SYL_DEBUG
 void dbg_validate_free_list(void);
+void dbg_dump_free_list(void);
 #else
 #define dbg_validate_free_list() ((void)0)
+#define dbg_dump_free_list() ((void)0)
 #endif
 
 #endif

@@ -7,11 +7,15 @@ SRC = src/sylalloc.c
 
 TEST = tests/test.c
 
+DEBUG = build/debug.c
+
 all: test
 
 test:
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(INC) $(SRC) $(TEST) -o test
 
-clean:
-	rm -f test
+debug:
+	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(INC) $(SRC) $(DEBUG) -o build/debug
 
+clean:
+	rm -f test build/debug

@@ -66,9 +66,13 @@ void dbg_dump_free_list(void) {
         void* block_start = (void*)curr;
         void* user_start = (void*)(curr + 1);
         void* block_end = (void*)((char*)curr + curr->size);
+        ptrdiff_t gap = 0;
+        if(curr->next) {
+            gap = (char*)curr->next - ( (char*)curr + MEMHEADER_SIZE + curr->size );
+        }
 
-        printf("[%d] free=%s  block=%p  user=%p  size=%zu  end=%p  next=%p\n", 
-            idx, free, block_start, user_start, curr->size, block_end, (void*)curr->next);
+        printf("[%d] free=%s  block=%p  user=%p  size=%zu  end=%p  next=%p  gap=%td\n", 
+            idx, free, block_start, user_start, curr->size, block_end, (void*)curr->next, gap);
 
         idx++;
         curr = curr->next;
@@ -188,6 +192,7 @@ static void split_block(memheader_t* block, size_t required_size) {
     block->size = required_size;
 
     dbg_validate_free_list();
+    dbg_dump_free_list();
 }
 
 
@@ -285,4 +290,5 @@ void syl_free(void* ptr) {
     coalesce_block(block);
 
     dbg_validate_free_list();
+    dbg_dump_free_list();
 }

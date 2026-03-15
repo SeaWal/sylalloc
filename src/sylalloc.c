@@ -7,7 +7,7 @@
 #include "sylalloc.h"
 
 #define MIN_SPLIT_SIZE 8
-
+#define ARENA_INIT_SIZE 1024
 
 // track allocations for re-use
 static memheader_t* free_list = NULL;
@@ -46,8 +46,8 @@ void dbg_validate_free_list(void) {
         if(curr->next) {
             char* end = (char*)curr + MEMHEADER_SIZE + curr->size;
             if(end == (char*)curr->next) {
-                fprintf(stderr, "SYLALLOC ERROR: adjacent blocks are not coaleseced\n");
-                abort();
+                fprintf(stderr, "SYLALLOC ERROR: adjacent blocks are not coalesced\n");
+                // abort();
             }
         }
 
@@ -78,7 +78,7 @@ void dbg_dump_free_list(void) {
         curr = curr->next;
     }
 
-    printf("\n============ END DUMP ============\n");
+    printf("============ END DUMP ============\n");
 }
 #endif
 
@@ -212,18 +212,18 @@ void* syl_malloc(size_t size) {
     // re-use existing if possible
     block = find_free_block(aligned_size);
 
-    if(block) {
-        remove_block_from_free_list(block);
-        split_block(block, aligned_size);
-        return header_to_user_start(block);
+    if(!block) {
+        memheader_t* arena = mmap_alloc(ARENA_INIT_SIZE);
+        if(!arena) {
+            return NULL;
+        }
+        block = (memheader_t*)arena;
+        block->size = ARENA_INIT_SIZE - MEMHEADER_SIZE;
+        add_block_to_free_list(block);
     }
 
-    size_t total_size = MEMHEADER_SIZE + aligned_size;
-    
-    block = mmap_alloc(total_size);
-    if(!block) {
-        return NULL;
-    }
+    remove_block_from_free_list(block);
+    split_block(block, aligned_size);
 
     block->is_free = false;
     block->size = aligned_size;

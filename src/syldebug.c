@@ -70,3 +70,8 @@ void dbg_dump_free_list(memheader_t* free_list) {
 
     printf("============ END DUMP ============\n");
 }
+
+void dbg_validate_all(memheader_t* free_list) {
+    dbg_validate_free_list(free_list);
+    dbg_dump_free_list(free_list);
+}

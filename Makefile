@@ -12,7 +12,7 @@ DEBUG = build/debug.c
 all: test
 
 test:
-	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(INC) $(SRC) $(TEST) -o test
+	$(CC) $(CFLAGS) $(INC) $(SRC) $(TEST) -o test
 
 debug:
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) $(INC) $(SRC) $(DEBUG) -o build/debug

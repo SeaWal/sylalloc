@@ -106,10 +106,6 @@ static void add_block_to_free_list(memheader_t* block) {
 
     block->next = current->next;
     current->next = block;
-
-    #ifdef SYL_DEBUG
-    dbg_validate_free_list(free_list);
-    #endif
 }
 
 static void split_block(memheader_t* block, size_t required_size) {
@@ -129,8 +125,7 @@ static void split_block(memheader_t* block, size_t required_size) {
     block->size = required_size;
 
     #ifdef SYL_DEBUG
-    dbg_validate_free_list(free_list);
-    dbg_dump_free_list(free_list);
+    dbg_validate_all(free_list);
     #endif
 }
 
@@ -212,6 +207,10 @@ static void coalesce_block(memheader_t* block) {
         // continue merging with the next if physically contiguous
         if(!merge_if_adjacent(block, block->next)) break;
     }
+
+    #ifdef SYL_DEBUG
+    dbg_validate_all(free_list);
+    #endif
 }
 
 void syl_free(void* ptr) {
@@ -229,7 +228,6 @@ void syl_free(void* ptr) {
     coalesce_block(block);
 
     #ifdef SYL_DEBUG
-    dbg_validate_free_list(free_list);
-    dbg_dump_free_list(free_list);
+    dbg_validate_all(free_list);
     #endif
 }

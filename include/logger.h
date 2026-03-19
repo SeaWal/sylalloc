@@ -1,6 +1,7 @@
 #ifndef SYL_LOGGER_H
 #define SYL_LOGGER_H
 
+#include <stdarg.h>
 #include <stdio.h>
 
 struct Logger {

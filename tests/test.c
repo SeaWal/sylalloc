@@ -1,6 +1,7 @@
 #include <stdalign.h>
 #include <stdio.h>
 #include "sylalloc.h"
+#include "logger.h"
 
 #define FAIL 0
 #define PASS 1
@@ -31,10 +32,12 @@ static unsigned int num_passed = 0;
         TEST_END(FAIL) \
     }
 
+static struct Logger logger;
 
 static void test_basic_alloc() {
     TEST_INIT("test_basic_alloc");
 
+    LOG(&logger, "allocating 32 bytes");
     void* p = syl_malloc(32);
     ASSERT(p != NULL);
 
@@ -215,6 +218,7 @@ static void test_exact_fit() {
 }
 
 int main() {
+    log_init(&logger, "syl_test_logs.txt");
     printf("============ SYLALLOC TESTS START ============\n\n");
 
     test_basic_alloc();
@@ -233,4 +237,5 @@ int main() {
 
     printf("\nResults: %d/%d tests passed.\n", num_passed, num_tests);
     printf("\n============ SYLALLOC TESTS END ============\n");
+    log_close(&logger);
 }

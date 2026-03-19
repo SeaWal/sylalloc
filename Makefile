@@ -3,7 +3,7 @@ CFLAGS = -std=c11 -Wall -Wextra -Werror -g
 DEBUGFLAGS = -DSYL_DEBUG
 INC = -Iinclude
 
-SRC = src/sylalloc.c src/syldebug.c
+SRC = src/sylalloc.c src/syldebug.c src/logger.c
 
 TEST = tests/test.c
 

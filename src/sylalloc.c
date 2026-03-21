@@ -4,10 +4,22 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
+#include "logger.h"
 #include "sylalloc.h"
 
 #ifdef SYL_DEBUG
 #include "syldebug.h"
+#endif
+
+#ifdef SYL_TRACE
+#define TRACE(logger, msg, ...) \
+    LOG((logger), "[TRACE] " msg, ##__VA_ARGS__)
+#else
+#define TRACE(logger, msg, ...) ((void)0)
+#endif
+
+#ifdef SYL_TRACE
+static struct Logger* syl_logger = NULL;
 #endif
 
 #define MIN_SPLIT_SIZE 8
@@ -127,10 +139,16 @@ static void split_block(memheader_t* block, size_t required_size) {
     #ifdef SYL_DEBUG
     dbg_validate_all(free_list);
     #endif
+    TRACE(syl_logger, 
+        "[SPLIT] block=%p  alloc=%zu  remainder=%zu", 
+        block, 
+        required_size, 
+        extra_size-MEMHEADER_SIZE);
 }
 
 
 void* syl_malloc(size_t size) {
+    TRACE(syl_logger, "[ALLOC] size=%zu", size);
     if(size == 0) { 
         return NULL;
     }
@@ -148,6 +166,7 @@ void* syl_malloc(size_t size) {
 
     if(!block) {
         memheader_t* arena = mmap_alloc(ARENA_INIT_SIZE);
+        TRACE(syl_logger, "[ARENA] new arena=%p  size=%zu", arena, ARENA_INIT_SIZE);
         if(!arena) {
             return NULL;
         }
@@ -219,6 +238,7 @@ void syl_free(void* ptr) {
     }
 
     memheader_t* block = user_start_to_header(ptr);
+    TRACE(syl_logger, "[FREE] block=%p  size=%zu", block, block->size);
 
     if(block->is_free) {
         return;

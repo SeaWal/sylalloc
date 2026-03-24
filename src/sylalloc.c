@@ -13,7 +13,9 @@
 
 #ifdef SYL_TRACE
 #define TRACE(logger, msg, ...) \
-    LOG((logger), "[TRACE] " msg, ##__VA_ARGS__)
+    do { \
+    if ((logger)) LOG((logger), "[TRACE] " msg, ##__VA_ARGS__); \
+    } while(0)
 #else
 #define TRACE(logger, msg, ...) ((void)0)
 #endif
@@ -21,6 +23,15 @@
 #ifdef SYL_TRACE
 static struct Logger* syl_logger = NULL;
 #endif
+
+void syl_set_logger(struct Logger* logger) {
+    #ifdef SYL_TRACE
+    syl_logger = logger;
+    #else
+    (void)logger;
+    #endif
+}
+
 
 #define MIN_SPLIT_SIZE 8
 #define ARENA_INIT_SIZE 1024

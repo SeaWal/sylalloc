@@ -15,5 +15,7 @@ typedef struct memheader_t {
 void* syl_malloc(size_t size);
 void syl_free(void* ptr);
 
+struct Logger;
+void syl_set_logger(struct Logger* logger);
 
 #endif

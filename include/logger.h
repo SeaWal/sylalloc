@@ -13,6 +13,6 @@ void log_close(struct Logger* logger);
 void log_msg(struct Logger* logger, const char* msg, ...);
 
 #define LOG(logger, msg, ...) \
-    log_msg((logger), "%s:%d (%s): %s", __FILE__, __LINE__, __func__, (msg), ##__VA_ARGS__)
+    log_msg((logger), "%s:%d (%s): %s\n", __FILE__, __LINE__, __func__, (msg), ##__VA_ARGS__)
 
 #endif

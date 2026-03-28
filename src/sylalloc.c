@@ -176,13 +176,15 @@ void* syl_malloc(size_t size) {
     block = find_free_block(aligned_size);
 
     if(!block) {
-        memheader_t* arena = mmap_alloc(ARENA_INIT_SIZE);
-        TRACE(syl_logger, "[ARENA] new arena=%p  size=%zu", arena, ARENA_INIT_SIZE);
+        size_t total_size = MEMHEADER_SIZE + aligned_size;
+        size_t arena_size = total_size > ARENA_INIT_SIZE ? total_size : ARENA_INIT_SIZE;
+        memheader_t* arena = mmap_alloc(arena_size);
+        TRACE(syl_logger, "[ARENA] new arena=%p  size=%zu", arena, arena_size);
         if(!arena) {
             return NULL;
         }
-        block = (memheader_t*)arena;
-        block->size = ARENA_INIT_SIZE - MEMHEADER_SIZE;
+        block = arena;
+        block->size = arena_size - MEMHEADER_SIZE;
         add_block_to_free_list(block);
     }
 
@@ -218,7 +220,7 @@ static bool merge_if_adjacent(memheader_t* left, memheader_t* right) {
 // assumes free_list is sorted by memory address
 static void coalesce_block(memheader_t* block) {
     if (!block) return;
-
+    TRACE(syl_logger, "[COAL] BEGIN  block=%p  size=%zu", block, block->size);
     // try merge prev and curr block first
     memheader_t* prev = NULL;
     memheader_t* current = free_list;
@@ -231,13 +233,15 @@ static void coalesce_block(memheader_t* block) {
     if (prev && merge_if_adjacent(prev, block)) {
         // for safety, set block pointer to prev
         block = prev;
+        TRACE(syl_logger, "[COAL]   merged prev --> block=%p  size=%zu", block, block->size);
     }
 
     while (block->next) {
         // continue merging with the next if physically contiguous
         if(!merge_if_adjacent(block, block->next)) break;
+        TRACE(syl_logger, "[COAL]  merging next --> block=%p  size=%zu", block, block->size);
     }
-
+    TRACE(syl_logger, "[COAL] END  block=%p  size=%zu", block, block->size);
     #ifdef SYL_DEBUG
     dbg_validate_all(free_list);
     #endif
